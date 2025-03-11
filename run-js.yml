@@ -1,4 +1,4 @@
-name: Run JavaScript from Make.com
+odcname: Run JavaScript from Make.com
 
 on:
   repository_dispatch:   # Allows external triggers like Make.com
@@ -15,4 +15,4 @@ jobs:
         with:
           node-version: 18
       - name: Run JavaScript File
-        run: node JS_make.js
+        run: node make_odc.js
