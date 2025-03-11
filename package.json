@@ -1,0 +1,26 @@
+{
+  "name": "js_make",
+  "version": "1.0.0",
+  "main": "make_odc.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/productMateAus/JS_make.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/productMateAus/JS_make/issues"
+  },
+  "homepage": "https://github.com/productMateAus/JS_make#readme",
+  "description": "",
+  "dependencies": {
+    "body-parser": "^1.20.3",
+    "express": "^4.21.2",
+    "fs": "^0.0.1-security",
+    "html-to-docx": "^1.8.0"
+  }
+}
