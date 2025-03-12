@@ -1,36 +1,44 @@
 import fs from "fs";
 import path from "path";
+import fetch from "node-fetch"; // Fetch API for retrieving the template
 import htmlToDocx from "html-to-docx";
+import { put } from "@vercel/blob"; // If you need to save the generated doc
 
 export default async function handler(req, res) {
     try {
         const { html } = req.body;
-
-        // Read the Word Template
-        const templatePath = path.join(process.cwd(), "api", "template.dotx");
-
-        // Check if template exists
-        if (!fs.existsSync(templatePath)) {
-            console.error("❌ Template file not found:", templatePath);
-            return res.status(500).json({ error: "Template file not found" });
+        if (!html) {
+            return res.status(400).json({ error: "HTML content is required" });
         }
 
-        const templateBuffer = fs.readFileSync(templatePath);
+        // Step 1: Fetch the Word template from Vercel Blob Storage
+        const templateUrl = "https://iszp5efqsz9wsw1l.public.blob.vercel-storage.com/template-e2mD0RSZY23zjfZhBhE6qzsf8uThVG.dotx"; // Replace with your actual template URL
+        console.log(`Fetching template from: ${templateUrl}`);
 
-        // Convert HTML to DOCX using the template
+        const templateResponse = await fetch(templateUrl);
+        if (!templateResponse.ok) {
+            throw new Error(`Failed to fetch template: ${templateResponse.statusText}`);
+        }
+        const templateBuffer = await templateResponse.arrayBuffer();
+
+        // Step 2: Convert HTML to DOCX using the template
         const docxBuffer = await htmlToDocx(html, {
-            template: templateBuffer, // Use the template
+            template: Buffer.from(templateBuffer),
         });
 
-        // Save to temporary storage
-        const filePath = path.join("/tmp", "output.docx");
-        fs.writeFileSync(filePath, docxBuffer);
+        // Step 3: Save the DOCX file to Vercel Blob Storage (Optional)
+        const timestamp = Date.now();
+        const fileName = `generated-docx-${timestamp}.docx`;
+        const { url: downloadUrl } = await put(fileName, docxBuffer, {
+            access: "public",
+        });
 
-        console.log("✅ DOCX File Created:", filePath); // Debugging line
+        console.log("✅ DOCX File Created:", downloadUrl);
 
+        // Step 4: Return the download link
         return res.status(200).json({
             message: "Success",
-            downloadUrl: `https://${req.headers.host}/api/download-docx?path=${encodeURIComponent(filePath)}`
+            downloadUrl,
         });
 
     } catch (error) {
