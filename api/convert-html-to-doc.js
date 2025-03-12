@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+import { put } from "@vercel/blob";
+import { htmlToDocx } from "html-to-docx";
 
 export default async function handler(req, res) {
     try {
@@ -15,37 +15,27 @@ export default async function handler(req, res) {
             return res.status(400).json({ error: "Missing HTML content" });
         }
 
-        // Dynamically import the library
-        let htmlToDocx;
-        try {
-            const module = await import("html-to-docx");
-            htmlToDocx = module.default || module.htmlToDocx;
-        } catch (err) {
-            console.error("❌ ERROR: Failed to import html-to-docx module", err);
-            return res.status(500).json({ error: "Failed to load document converter" });
-        }
-
-        // Generate DOCX content
+        // Convert HTML to DOCX
         const docxBuffer = await htmlToDocx(html);
-
         if (!docxBuffer) {
             console.error("❌ ERROR: DOCX buffer is empty");
             return res.status(500).json({ error: "Failed to generate DOCX" });
         }
 
-        // Define file path in /tmp/
-        const fileName = `generated-docx-${Date.now()}.docx`;
-        const filePath = `/tmp/${fileName}`;
+        console.log("✅ DOCX File Created in Memory");
 
-        // Save file
-        fs.writeFileSync(filePath, docxBuffer);
-        console.log("✅ DOCX File Created:", filePath);
-        console.log("📂 Files in /tmp/:", fs.readdirSync("/tmp/")); // Log available files
+        // 📂 Upload DOCX to Vercel Blob Storage
+        const blob = await put(`generated-docx-${Date.now()}.docx`, docxBuffer, {
+            access: "public", // Make the file publicly accessible
+            contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        });
 
-        // Return download URL
+        console.log("📤 File uploaded to Vercel Blob Storage:", blob.url);
+
+        // Return the file URL
         return res.status(200).json({
             message: "Success",
-            downloadUrl: `https://${req.headers.host}/api/download-docx?path=${encodeURIComponent(filePath)}`
+            downloadUrl: blob.url
         });
 
     } catch (error) {
