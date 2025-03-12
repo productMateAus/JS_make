@@ -17,16 +17,22 @@ export default async function handler(req, res) {
         // Convert HTML to DOCX
         const docxBuffer = await htmlToDocx(html);
 
-        // Define a file path for storing the DOCX
-        const filePath = path.join("/tmp", "output.docx");
+        const filePath = `/tmp/generated-docx-${Date.now()}.docx`;
+        fs.writeFileSync(filePath, docxBuffer); // Save the DOCX file
 
-        // Save the file temporarily
-        fs.writeFileSync(filePath, docxBuffer);
 
-        // Return the file URL
-        return res.status(200).json({
+        if (!fs.existsSync(filePath)) {
+            console.error("❌ ERROR: File was not created!", filePath);
+            return res.status(500).json({ error: "File was not created" });
+        }
+
+        // Log the file path for debugging
+        console.log("✅ DOCX File Created:", filePath);
+
+        // Return the file URL with the correct path
+        res.status(200).json({
             message: "Success",
-            downloadUrl: `https://${req.headers.host}/api/download-docx`
+            downloadUrl: `https://${req.headers.host}/api/download-docx?path=${encodeURIComponent(filePath)}`
         });
 
     } catch (error) {
