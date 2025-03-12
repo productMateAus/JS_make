@@ -3,35 +3,24 @@ import { writeFileSync } from "fs";
 import path from "path";
 
 export default async function handler(req, res) {
+    console.log("Received headers:", req.headers);
+    console.log("Received request body:", req.body);
+
     if (req.method !== "POST") {
-        return res.status(405).json({ error: "Method Not Allowed. Use POST." });
+        return res.status(405).json({ error: "Method Not Allowed" });
     }
 
     try {
-        console.log("✅ API Request Received");
-
-        // Get HTML content from request body
-        const { html } = req.body;
-        if (!html) {
-            return res.status(400).json({ error: "Missing HTML content in request body" });
+        // Ensure body is parsed correctly
+        if (!req.body || typeof req.body !== "object") {
+            return res.status(400).json({ error: "Invalid JSON received" });
         }
 
-        console.log("🔄 Converting HTML to DOCX...");
-        const docxBuffer = await htmlToDocx(html);
+        // Process HTML to DOCX logic here...
+        res.status(200).json({ message: "Success" });
 
-        // Save the file for debugging (optional)
-        const filePath = path.join("/tmp", "output.docx");
-        writeFileSync(filePath, docxBuffer);
-        console.log("✅ DOCX File Created at", filePath);
-
-        // Set headers to force file download
-        res.setHeader("Content-Disposition", 'attachment; filename="document.docx"');
-        res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-
-        // Send the DOCX file as a response
-        res.status(200).send(docxBuffer);
     } catch (error) {
-        console.error("❌ Error Processing Request:", error);
-        res.status(500).json({ error: "Internal Server Error" });
+        console.error("Server Error:", error);
+        res.status(500).json({ error: "Internal Server Error", details: error.message });
     }
 }
