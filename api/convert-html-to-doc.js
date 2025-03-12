@@ -24,6 +24,11 @@ export default async function handler(req, res) {
         // Step 2: Convert HTML to DOCX using the template
         const docxBuffer = await htmlToDocx(html, {
             template: Buffer.from(templateBuffer),
+            font: "Arial",  // Set font to Arial
+            fontSize: 11,   // Optional: Set default font size
+            paragraph: {
+                spacing: { line: 280 }, // Optional: Set line spacing
+            },
         });
 
         // Step 3: Save the DOCX file to Vercel Blob Storage (Optional)
