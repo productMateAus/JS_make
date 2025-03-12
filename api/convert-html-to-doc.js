@@ -3,41 +3,53 @@ import path from "path";
 
 export default async function handler(req, res) {
     try {
-        // Ensure this is a POST request
+        console.log("📥 Received Request to Convert HTML to DOCX");
+
         if (req.method !== "POST") {
             return res.status(405).json({ error: "Method Not Allowed" });
         }
 
-        // Extract HTML content
         const { html } = req.body;
         if (!html) {
+            console.error("❌ ERROR: Missing HTML content in request");
             return res.status(400).json({ error: "Missing HTML content" });
         }
 
-        // Import the library dynamically
-        const { htmlToDocx } = await import("html-to-docx");
+        // Dynamically import the library
+        let htmlToDocx;
+        try {
+            const module = await import("html-to-docx");
+            htmlToDocx = module.default || module.htmlToDocx;
+        } catch (err) {
+            console.error("❌ ERROR: Failed to import html-to-docx module", err);
+            return res.status(500).json({ error: "Failed to load document converter" });
+        }
 
         // Generate DOCX content
         const docxBuffer = await htmlToDocx(html);
 
+        if (!docxBuffer) {
+            console.error("❌ ERROR: DOCX buffer is empty");
+            return res.status(500).json({ error: "Failed to generate DOCX" });
+        }
+
         // Define file path in /tmp/
-        const filePath = `/tmp/generated-docx-${Date.now()}.docx`;
+        const fileName = `generated-docx-${Date.now()}.docx`;
+        const filePath = `/tmp/${fileName}`;
 
-        // Save file to /tmp/
+        // Save file
         fs.writeFileSync(filePath, docxBuffer);
-
-        // Debugging: Check if file was created
         console.log("✅ DOCX File Created:", filePath);
-        console.log("📂 Files in /tmp/:", fs.readdirSync("/tmp/")); // Log files in /tmp/
+        console.log("📂 Files in /tmp/:", fs.readdirSync("/tmp/")); // Log available files
 
-        // Return the download URL
+        // Return download URL
         return res.status(200).json({
             message: "Success",
             downloadUrl: `https://${req.headers.host}/api/download-docx?path=${encodeURIComponent(filePath)}`
         });
 
     } catch (error) {
-        console.error("❌ Error Processing Request:", error);
+        console.error("❌ ERROR: Internal Server Error", error);
         return res.status(500).json({ error: "Internal Server Error" });
     }
 }
