@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { htmlToDocx } from "html-to-docx";
+import htmlToDocx from "html-to-docx";
 
 export default async function handler(req, res) {
     try {
