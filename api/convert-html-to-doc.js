@@ -1,4 +1,4 @@
-import { htmlToDocx } from "html-to-docx";
+import htmlToDocx from "html-to-docx";
 import { writeFileSync } from "fs";
 import path from "path";
 
