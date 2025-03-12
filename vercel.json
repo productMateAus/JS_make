@@ -1,9 +1,6 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "make_odc.js", "use": "@vercel/node" }
-  ],
   "routes": [
-    { "src": "/convert-html-to-doc", "dest": "make_odc.js" }
+    { "src": "/api/(.*)", "dest": "/api/$1" }
   ]
 }
