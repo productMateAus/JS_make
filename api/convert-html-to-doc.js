@@ -1,26 +1,36 @@
-import htmlToDocx from "html-to-docx";
-import { writeFileSync } from "fs";
+import fs from "fs";
 import path from "path";
+import { htmlToDocx } from "html-to-docx";
 
 export default async function handler(req, res) {
-    console.log("Received headers:", req.headers);
-    console.log("Received request body:", req.body);
-
-    if (req.method !== "POST") {
-        return res.status(405).json({ error: "Method Not Allowed" });
-    }
-
     try {
-        // Ensure body is parsed correctly
-        if (!req.body || typeof req.body !== "object") {
-            return res.status(400).json({ error: "Invalid JSON received" });
+        if (req.method !== "POST") {
+            return res.status(405).json({ error: "Method Not Allowed" });
         }
 
-        // Process HTML to DOCX logic here...
-        res.status(200).json({ message: "Success" });
+        const { html } = req.body;
+
+        if (!html) {
+            return res.status(400).json({ error: "No HTML content provided" });
+        }
+
+        // Convert HTML to DOCX
+        const docxBuffer = await htmlToDocx(html);
+
+        // Define a file path for storing the DOCX
+        const filePath = path.join("/tmp", "output.docx");
+
+        // Save the file temporarily
+        fs.writeFileSync(filePath, docxBuffer);
+
+        // Return the file URL
+        return res.status(200).json({
+            message: "Success",
+            downloadUrl: `https://${req.headers.host}/api/download-docx`
+        });
 
     } catch (error) {
-        console.error("Server Error:", error);
-        res.status(500).json({ error: "Internal Server Error", details: error.message });
+        console.error("Error processing request:", error);
+        return res.status(500).json({ error: "Internal Server Error" });
     }
 }
