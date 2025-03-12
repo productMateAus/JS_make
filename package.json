@@ -1,7 +1,6 @@
 {
   "name": "js_make",
   "version": "1.0.0",
-  "main": "make_odc.js",
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
