@@ -1,28 +1,25 @@
-import { put } from "@vercel/blob";
+import fs from "fs";
+import path from "path";
+import { htmlToDocx } from "html-to-docx";
 
 export default async function handler(req, res) {
-    if (req.method !== "POST") {
-        return res.status(405).json({ error: "Method Not Allowed" });
-    }
-
     try {
         const { html } = req.body;
-        if (!html) {
-            return res.status(400).json({ error: "Missing HTML content" });
-        }
 
-        // Convert HTML to DOCX
-        const htmlToDocx = (await import("html-to-docx")).default;
-        const buffer = await htmlToDocx(html);
+        // Read the Word Template
+        const templatePath = path.join(process.cwd(), "api", "template.dotx");
+        const templateBuffer = fs.readFileSync(templatePath);
 
-        // Upload file to Vercel Blob Storage
-        const fileName = `generated-${Date.now()}.docx`;
-        const { url } = await put(fileName, buffer, {
-            access: "public",
-            contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        // Convert HTML to DOCX using the template
+        const docxBuffer = await htmlToDocx(html, {
+            template: templateBuffer, // Use the template
         });
 
-        return res.status(200).json({ message: "Success", downloadUrl: url });
+        // Save to temporary storage
+        const filePath = path.join("/tmp", "output.docx");
+        fs.writeFileSync(filePath, docxBuffer);
+
+        return res.status(200).json({ message: "Success", downloadUrl: `/api/download-docx?path=${filePath}` });
     } catch (error) {
         console.error("Error processing request:", error);
         return res.status(500).json({ error: "Internal Server Error" });
