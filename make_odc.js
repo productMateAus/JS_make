@@ -6,7 +6,7 @@ const htmlToDocx = require("html-to-docx");
 const app = express();
 app.use(bodyParser.json());
 
-// ✅ Make sure this API route exists
+// ✅ Ensure this route is correctly defined
 app.post("/convert-html-to-doc", async (req, res) => {
     try {
         const inputHtml = req.body.html;
@@ -22,7 +22,7 @@ app.post("/convert-html-to-doc", async (req, res) => {
 
         res.json({
             message: "Conversion successful",
-            fileUrl: `https://js-make.vercel.app/output/${fileName}`
+            fileUrl: `https://js-make-dy1ske2dd-craigs-projects-881f569a.vercel.app/output/${fileName}`
         });
 
     } catch (error) {
@@ -31,6 +31,6 @@ app.post("/convert-html-to-doc", async (req, res) => {
     }
 });
 
-// ✅ Start Server
+// ✅ Start the server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
