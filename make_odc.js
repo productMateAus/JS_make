@@ -1,47 +1,38 @@
-const express = require("express");
-const bodyParser = require("body-parser");
-const fs = require("fs");
-const path = require("path");
-const htmlToDocx = require("html-to-docx");
-
-const app = express();
-app.use(bodyParser.json());
-
 app.post("/convert-html-to-doc", async (req, res) => {
     try {
-        // 📝 Get HTML from request body
-        const { htmlContent } = req.body;
+        console.log("📩 Received request:", req.body); // Debugging log
 
+        const { htmlContent } = req.body;
         if (!htmlContent) {
+            console.log("❌ No HTML content received");
             return res.status(400).json({ error: "No HTML content provided" });
         }
 
-        // 🔄 Convert HTML to .docx format
+        // Convert HTML to DOCX
+        console.log("🔄 Converting HTML to DOCX...");
         const docxBuffer = await htmlToDocx(htmlContent);
-
-        // 📂 Define file path
+        
+        // Save File Locally (Temporary)
         const filePath = path.join(__dirname, "output.docx");
-
-        // 📝 Write file to the server temporarily
         fs.writeFileSync(filePath, docxBuffer);
+        
+        console.log("✅ DOCX File Generated:", filePath);
 
-        // 🔽 Send file as response for download
+        // Send File as Download Response
         res.download(filePath, "document.docx", (err) => {
             if (err) {
-                console.error("Error sending file:", err);
+                console.error("❌ Error sending file:", err);
                 res.status(500).json({ error: "Error generating document" });
+            } else {
+                console.log("📤 File sent successfully!");
             }
 
-            // 🔄 Clean up: Delete file after sending
+            // Cleanup: Delete file after sending
             fs.unlinkSync(filePath);
         });
 
     } catch (error) {
-        console.error("Error processing request:", error);
+        console.error("❌ Error processing request:", error);
         res.status(500).json({ error: "Internal Server Error" });
     }
 });
-
-// 🚀 Start the server (change port if needed)
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
