@@ -2,12 +2,12 @@ import { htmlToDocx } from "html-to-docx";
 import fs from "fs";
 
 export default async function handler(req, res) {
+    if (req.method !== "POST") {
+        return res.status(405).json({ error: "Method Not Allowed" });
+    }
+
     try {
         console.log("✅ API Request Received");
-
-        if (req.method !== "POST") {
-            return res.status(405).json({ error: "Method Not Allowed" });
-        }
 
         const { html } = req.body;
         if (!html) {
@@ -17,11 +17,11 @@ export default async function handler(req, res) {
         console.log("🔄 Converting HTML to DOCX...");
         const docxBuffer = await htmlToDocx(html);
 
-        // Optional: Save file for debugging (remove in production)
+        // Optional: Save file for debugging
         fs.writeFileSync("/tmp/output.docx", docxBuffer);
         console.log("✅ DOCX File Created");
 
-        // Set response headers to force file download
+        // Set headers to force file download
         res.setHeader("Content-Disposition", "attachment; filename=document.docx");
         res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
 
