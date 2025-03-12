@@ -1,42 +1,43 @@
 import fs from "fs";
 import path from "path";
-import htmlToDocx from "html-to-docx";
 
 export default async function handler(req, res) {
     try {
+        // Ensure this is a POST request
         if (req.method !== "POST") {
             return res.status(405).json({ error: "Method Not Allowed" });
         }
 
+        // Extract HTML content
         const { html } = req.body;
-
         if (!html) {
-            return res.status(400).json({ error: "No HTML content provided" });
+            return res.status(400).json({ error: "Missing HTML content" });
         }
 
-        // Convert HTML to DOCX
+        // Import the library dynamically
+        const { htmlToDocx } = await import("html-to-docx");
+
+        // Generate DOCX content
         const docxBuffer = await htmlToDocx(html);
 
+        // Define file path in /tmp/
         const filePath = `/tmp/generated-docx-${Date.now()}.docx`;
-        fs.writeFileSync(filePath, docxBuffer); // Save the DOCX file
 
+        // Save file to /tmp/
+        fs.writeFileSync(filePath, docxBuffer);
 
-        if (!fs.existsSync(filePath)) {
-            console.error("❌ ERROR: File was not created!", filePath);
-            return res.status(500).json({ error: "File was not created" });
-        }
-
-        // Log the file path for debugging
+        // Debugging: Check if file was created
         console.log("✅ DOCX File Created:", filePath);
+        console.log("📂 Files in /tmp/:", fs.readdirSync("/tmp/")); // Log files in /tmp/
 
-        // Return the file URL with the correct path
-        res.status(200).json({
+        // Return the download URL
+        return res.status(200).json({
             message: "Success",
             downloadUrl: `https://${req.headers.host}/api/download-docx?path=${encodeURIComponent(filePath)}`
         });
 
     } catch (error) {
-        console.error("Error processing request:", error);
+        console.error("❌ Error Processing Request:", error);
         return res.status(500).json({ error: "Internal Server Error" });
     }
 }

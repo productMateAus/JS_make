@@ -2,14 +2,13 @@ import fs from "fs";
 import path from "path";
 
 export default function handler(req, res) {
-    // Log request for debugging
     console.log("📥 Received request to download DOCX");
 
-    // Ensure we get the correct file path from query params
+    // Get the file path from query parameters
     const filePath = req.query.path ? decodeURIComponent(req.query.path) : path.join("/tmp", "output.docx");
 
-    // Debug: Log the file path
-    console.log("📄 File Path:", filePath);
+    // Debug: Log available files in /tmp/
+    console.log("📂 Available files in /tmp/:", fs.readdirSync("/tmp/"));
 
     // Check if file exists
     if (!fs.existsSync(filePath)) {
@@ -17,11 +16,11 @@ export default function handler(req, res) {
         return res.status(404).json({ error: "File not found" });
     }
 
-    // Set headers for file download
+    // Set headers for download
     res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
-    res.setHeader("Content-Disposition", `attachment; filename=output.docx`);
+    res.setHeader("Content-Disposition", "attachment; filename=output.docx");
 
-    // Create file stream and send response
+    // Stream file to response
     const fileStream = fs.createReadStream(filePath);
     fileStream.pipe(res);
 }
