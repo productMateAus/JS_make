@@ -38,11 +38,21 @@ export default async function handler(req, res) {
 
         // Step 2: Convert Cleaned HTML to DOCX using the template
         const docxBuffer = await htmlToDocx(cleanedHTML, {
-            template: Buffer.from(templateBuffer),
-            font: "Arial",
-            fontSize: 11,
+            template: Buffer.from(templateBuffer), 
+            font: "Arial",  // Force all text to Arial
+            fontSize: 12,   // Default font size
             paragraph: {
-                spacing: { line: 280 },
+                spacing: { line: 280 }, // Line spacing for paragraphs
+            },
+            table: {
+                borderSize: 1,    // Ensure tables have consistent styling
+                borderColor: "000000",
+                width: { type: "auto" },
+            },
+            defaultStyles: {
+                heading1: { font: "Arial", fontSize: 22, bold: true },
+                heading2: { font: "Arial", fontSize: 18, bold: true },
+                paragraph: { font: "Arial", fontSize: 11 },
             },
         });
 
