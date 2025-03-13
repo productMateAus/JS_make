@@ -40,7 +40,7 @@ export default async function handler(req, res) {
         const docxBuffer = await htmlToDocx(cleanedHTML, {
             template: Buffer.from(templateBuffer), 
             font: "Arial",  // Force all text to Arial
-            fontSize: 12,   // Default font size
+            fontSize: 11,   // Default font size
             paragraph: {
                 spacing: { line: 280 }, // Line spacing for paragraphs
             },
